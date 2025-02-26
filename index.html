@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript MCQ Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            margin-top: 50px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .question {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .options {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .option {
+            margin: 10px 0;
+        }
+        #timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: red;
+            margin-bottom: 20px;
+        }
+        #submit, #next {
+            margin-top: 20px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #submit:hover, #next:hover {
+            background-color: #218838;
+        }
+        #pagination {
+            margin-top: 20px;
+        }
+        .page-btn {
+            margin: 5px;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .attempted {
+            background-color: #28a745;
+            color: white;
+        }
+        .unattempted {
+            background-color: #ccc;
+            color: black;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>JavaScript MCQ Test</h2>
+        <div id="timer">Time Left: <span id="time">10</span> sec</div>
+        <div id="quiz"></div>
+        <button id="next">Next</button>
+        <button id="submit" style="display:none;">Submit</button>
+        <div id="pagination"></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "What is the correct way to declare a JavaScript variable?",
+                options: ["var x = 5;", "variable x = 5;", "v x = 5;", "int x = 5;"],
+                answer: "var x = 5;"
+            },
+            {
+                question: "Which of the following is a JavaScript data type?",
+                options: ["String", "Boolean", "Number", "All of the above"],
+                answer: "All of the above"
+            },
+            {
+                question: "Which symbol is used for comments in JavaScript?",
+                options: ["//", "/* */", "Both", "#"],
+                answer: "Both"
+            }
+        ];
+
+        const quizContainer = document.getElementById("quiz");
+        const nextButton = document.getElementById("next");
+        const submitButton = document.getElementById("submit");
+        const resultContainer = document.getElementById("result");
+        const timerElement = document.getElementById("time");
+        const paginationContainer = document.getElementById("pagination");
+        
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 10;
+        let timer;
+        let attemptedQuestions = new Array(quizData.length).fill(false);
+
+        function loadQuestion(index) {
+            clearInterval(timer);
+            timeLeft = 10;
+            timerElement.innerText = timeLeft;
+            timer = setInterval(updateTimer, 1000);
+            
+            quizContainer.innerHTML = "";
+            const q = quizData[index];
+            
+            const questionElement = document.createElement("div");
+            questionElement.classList.add("question");
+            questionElement.innerHTML = `${index + 1}. ${q.question}`;
+            quizContainer.appendChild(questionElement);
+            
+            const optionsContainer = document.createElement("div");
+            optionsContainer.classList.add("options");
+            q.options.forEach(option => {
+                const optionElement = document.createElement("div");
+                optionElement.classList.add("option");
+                optionElement.innerHTML = `<input type="radio" name="q${index}" value="${option}"> ${option}`;
+                optionsContainer.appendChild(optionElement);
+            });
+            quizContainer.appendChild(optionsContainer);
+            updatePagination();
+        }
+
+        function updateTimer() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                timerElement.innerText = timeLeft;
+            } else {
+                clearInterval(timer);
+                checkAnswer();
+                nextQuestion();
+            }
+        }
+
+        function checkAnswer() {
+            const selectedOption = document.querySelector(`input[name="q${currentQuestionIndex}"]:checked`);
+            if (selectedOption) {
+                attemptedQuestions[currentQuestionIndex] = true;
+                if (selectedOption.value === quizData[currentQuestionIndex].answer) {
+                    score++;
+                }
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion(currentQuestionIndex);
+            } else {
+                quizContainer.innerHTML = "";
+                nextButton.style.display = "none";
+                submitButton.style.display = "block";
+                clearInterval(timer);
+            }
+        }
+
+        function updatePagination() {
+            paginationContainer.innerHTML = "";
+            quizData.forEach((_, index) => {
+                const pageButton = document.createElement("button");
+                pageButton.innerText = index + 1;
+                pageButton.classList.add("page-btn");
+                pageButton.classList.add(attemptedQuestions[index] ? "attempted" : "unattempted");
+                if (!attemptedQuestions[index]) {
+                    pageButton.disabled = true;
+                }
+                pageButton.addEventListener("click", () => {
+                    if (attemptedQuestions[index]) {
+                        currentQuestionIndex = index;
+                        loadQuestion(index);
+                    }
+                });
+                paginationContainer.appendChild(pageButton);
+            });
+        }
+
+        nextButton.addEventListener("click", () => {
+            checkAnswer();
+            nextQuestion();
+        });
+
+        submitButton.addEventListener("click", () => {
+            checkAnswer();
+            resultContainer.innerHTML = `You scored ${score} out of ${quizData.length}`;
+        });
+
+        loadQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
